@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.recker.flybannerdemo.MainActivity">
+    android:orientation="vertical">
 
     <TextView
-        android:text="Hello World!"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-</RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="加载本地图片"
+        android:padding="8dp"
+        android:textColor="@android:color/holo_red_light"/>
+
+    <com.recker.flybanner.FlyBanner
+        android:id="@+id/banner_1"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="加载网络图片"
+        android:padding="8dp"
+        android:textColor="@android:color/holo_red_light" />
+
+    <com.recker.flybanner.FlyBanner
+        android:id="@+id/banner_2"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
+
+</LinearLayout>
