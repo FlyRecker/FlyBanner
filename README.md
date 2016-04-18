@@ -7,7 +7,7 @@
 ###Gradle
 
 	dependencies {
-  		compile 'com.recker.flybanner:flybanner:1.0'      
+  		compile 'com.recker.flybanner:flybanner:1.1'      
 	}
 
 ###Usage
