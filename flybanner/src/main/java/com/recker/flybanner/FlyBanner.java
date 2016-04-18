@@ -10,8 +10,6 @@ import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,15 +88,17 @@ public class FlyBanner extends RelativeLayout {
     }
 
     private void init(Context context) {
+
+        setLayout(context);
+    }
+
+    private void setLayout(Context context) {
         //设置指示器背景
         mPointContainerBackgroundDrawable = new ColorDrawable(Color.parseColor("#00aaaaaa"));
         //添加ViewPager
         mViewPager = new ViewPager(context);
         addView(mViewPager, new LayoutParams(RMP, RMP));
-
-        //初始化ViewPager滑动速度
-//        initPageChangeDuration();
-        //设置指示器容器
+        //设置指示器背景容器
         RelativeLayout pointContainerRl = new RelativeLayout(context);
         if (Build.VERSION.SDK_INT >= 16) {
             pointContainerRl.setBackground(mPointContainerBackgroundDrawable);
@@ -111,12 +111,12 @@ public class FlyBanner extends RelativeLayout {
         LayoutParams pointContainerLp = new LayoutParams(RMP, RWP);
         pointContainerLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         addView(pointContainerRl, pointContainerLp);
-
+        //设置指示器容器
         mPointRealContainerLl = new LinearLayout(context);
         mPointRealContainerLl.setOrientation(LinearLayout.HORIZONTAL);
         LayoutParams pointRealContainerLp = new LayoutParams(RWP, RWP);
         pointContainerRl.addView(mPointRealContainerLl, pointRealContainerLp);
-        //设置布局位置
+        //设置指示器布局位置
         if (mPointPosition == PointPosition.CENTER) {
             pointRealContainerLp.addRule(RelativeLayout.CENTER_HORIZONTAL);
         } else if (mPointPosition == PointPosition.LEFT) {
@@ -345,16 +345,6 @@ public class FlyBanner extends RelativeLayout {
         RIGHT,
         LEFT
     }
-
-    //公开的方法
-
-    /**
-     * 设置指示器位置
-     */
-    public void setPointPosition(PointPosition position) {
-        this.mPointPosition = position;
-    }
-
 
 
     private OnItemClickListener mOnItemClickListener;

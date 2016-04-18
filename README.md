@@ -1,4 +1,5 @@
 # FlyBanner
+支持无限循环的广告栏控件
 
 ###Demo
 ![](image/gif1.gif)
