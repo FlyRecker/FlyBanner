@@ -91,7 +91,7 @@ public class FlyBanner extends RelativeLayout {
 
     private void init(Context context) {
         //设置指示器背景
-        mPointContainerBackgroundDrawable = new ColorDrawable(Color.parseColor("#44aaaaaa"));
+        mPointContainerBackgroundDrawable = new ColorDrawable(Color.parseColor("#00aaaaaa"));
         //添加ViewPager
         mViewPager = new ViewPager(context);
         addView(mViewPager, new LayoutParams(RMP, RMP));
@@ -345,6 +345,17 @@ public class FlyBanner extends RelativeLayout {
         RIGHT,
         LEFT
     }
+
+    //公开的方法
+
+    /**
+     * 设置指示器位置
+     */
+    public void setPointPosition(PointPosition position) {
+        this.mPointPosition = position;
+    }
+
+
 
     private OnItemClickListener mOnItemClickListener;
 
