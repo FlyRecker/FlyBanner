@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 //apply plugin: 'com.github.dcendents.android-maven'
 //apply plugin: 'com.jfrog.bintray'
 //
-//version = "1.1"
+//version = "1.2"
 
 android {
     compileSdkVersion 23
@@ -29,7 +29,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.3.2'
 }
 
-
+//
 //def siteUrl = 'https://github.com/FlyRecker/FlyBanner' // 项目的主页
 //def gitUrl = 'https://github.com/FlyRecker/FlyBanner.git' // Git仓库的url
 //group = "com.recker.flybanner" // 唯一的包名

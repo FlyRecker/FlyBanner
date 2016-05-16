@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         images.add(R.drawable.img_3);
         images.add(R.drawable.img_4);
         mBannerLocal.setImages(images);
+//        mBannerLocal.setPoinstPosition(FlyBanner.RIGHT);
 
         mBannerLocal.setOnItemClickListener(new FlyBanner.OnItemClickListener() {
             @Override

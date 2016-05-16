@@ -1,6 +1,7 @@
 package com.recker.flybanner;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -28,12 +30,13 @@ import java.util.List;
 public class FlyBanner extends RelativeLayout {
 
     private static final int RMP = LayoutParams.MATCH_PARENT;
-
     private static final int RWP = LayoutParams.WRAP_CONTENT;
-
     private static final int LWC = LinearLayout.LayoutParams.WRAP_CONTENT;
-
     private static final int WHAT_AUTO_PLAY = 1000;
+    //Point位置
+    public static final int CENTER = 0;
+    public static final int LEFT = 1;
+    public static final int RIGHT = 2;
 
     private LinearLayout mPointRealContainerLl;
 
@@ -44,25 +47,31 @@ public class FlyBanner extends RelativeLayout {
     private List<String> mImageUrls;
     //是否是网络图片
     private boolean mIsImageUrl = false;
-
-    private ViewPagerScroller mScroller;
+    //是否只有一张图片
+    private boolean mIsOneImg = false;
     //是否可以自动播放
     private boolean mAutoPlayAble = true;
     //是否正在播放
     private boolean mIsAutoPlaying = false;
     //自动播放时间
     private int mAutoPalyTime = 5000;
-    //页面切换时间
-    private int mPageChangeDuration = 400;
-
     //当前页面位置
     private int mCurrentPositon;
     //指示点位置
-    private PointPosition mPointPosition = PointPosition.CENTER;
-
+    private int mPointPosition = CENTER;
+    //指示点资源
     private int mPointDrawableResId = R.drawable.selector_bgabanner_point;
     //指示容器背景
     private Drawable mPointContainerBackgroundDrawable;
+    //指示容器布局规则
+    private LayoutParams mPointRealContainerLp;
+    //提示语
+    private TextView mTips;
+
+    private List<String> mTipsDatas;
+    //指示点是否可见
+    private boolean mPointsIsVisible = true;
+
 
     private Handler mAutoPlayHandler = new Handler() {
         @Override
@@ -84,17 +93,30 @@ public class FlyBanner extends RelativeLayout {
     public FlyBanner(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        init(context);
+        init(context, attrs);
     }
 
-    private void init(Context context) {
+    private void init(Context context, AttributeSet attrs) {
+
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.FlyBanner);
+
+        mPointsIsVisible = a.getBoolean(R.styleable.FlyBanner_points_visibility, true);
+        mPointPosition = a.getInt(R.styleable.FlyBanner_points_position, CENTER);
+        mPointContainerBackgroundDrawable
+                = a.getDrawable(R.styleable.FlyBanner_points_container_background);
+
+        a.recycle();
 
         setLayout(context);
     }
 
     private void setLayout(Context context) {
+        //关闭view的OverScroll
+        setOverScrollMode(OVER_SCROLL_NEVER);
         //设置指示器背景
-        mPointContainerBackgroundDrawable = new ColorDrawable(Color.parseColor("#00aaaaaa"));
+        if (mPointContainerBackgroundDrawable == null) {
+            mPointContainerBackgroundDrawable = new ColorDrawable(Color.parseColor("#00aaaaaa"));
+        }
         //添加ViewPager
         mViewPager = new ViewPager(context);
         addView(mViewPager, new LayoutParams(RMP, RMP));
@@ -114,62 +136,106 @@ public class FlyBanner extends RelativeLayout {
         //设置指示器容器
         mPointRealContainerLl = new LinearLayout(context);
         mPointRealContainerLl.setOrientation(LinearLayout.HORIZONTAL);
-        LayoutParams pointRealContainerLp = new LayoutParams(RWP, RWP);
-        pointContainerRl.addView(mPointRealContainerLl, pointRealContainerLp);
+        mPointRealContainerLp = new LayoutParams(RWP, RWP);
+        pointContainerRl.addView(mPointRealContainerLl, mPointRealContainerLp);
+        //设置指示器容器是否可见
+        if (mPointRealContainerLl != null) {
+            if (mPointsIsVisible) {
+                mPointRealContainerLl.setVisibility(View.VISIBLE);
+            } else {
+                mPointRealContainerLl.setVisibility(View.GONE);
+            }
+        }
         //设置指示器布局位置
-        if (mPointPosition == PointPosition.CENTER) {
-            pointRealContainerLp.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        } else if (mPointPosition == PointPosition.LEFT) {
-            pointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-        } else if (mPointPosition == PointPosition.RIGHT) {
-            pointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        if (mPointPosition == CENTER) {
+            mPointRealContainerLp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        } else if (mPointPosition == LEFT) {
+            mPointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        } else if (mPointPosition == RIGHT) {
+            mPointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         }
     }
 
-    private void initPageChangeDuration() {
-        try {
-            Field scroller = ViewPager.class.getDeclaredField("mScroller");
-            scroller.setAccessible(true);
-            mScroller = new ViewPagerScroller(mViewPager.getContext());
-            scroller.set(mViewPager, mScroller);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-    }
-
+    /**
+     * 设置本地图片
+     * @param images
+     */
     public void setImages(List<Integer> images) {
         //加载本地图片
         mIsImageUrl = false;
         this.mImages = images;
+        if (images.size() <= 1)
+            mIsOneImg = true;
         //初始化ViewPager
         initViewPager();
     }
 
+    /**
+     * 设置网络图片
+     * @param urls
+     */
     public void setImagesUrl(List<String> urls) {
         //加载网络图片
         mIsImageUrl = true;
         this.mImageUrls = urls;
+        if (urls.size() <= 1)
+            mIsOneImg = true;
         //初始化ViewPager
         initViewPager();
     }
 
+    /**
+     * 设置指示点是否可见
+     * @param isVisible
+     */
+    public void setPointsIsVisible(boolean isVisible) {
+        if (mPointRealContainerLl != null) {
+            if (isVisible) {
+                mPointRealContainerLl.setVisibility(View.VISIBLE);
+            } else {
+                mPointRealContainerLl.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * 对应三个位置 CENTER,RIGHT,LEFT
+     * @param position
+     */
+    public void setPoinstPosition(int position) {
+        //设置指示器布局位置
+        if (position == CENTER) {
+            mPointRealContainerLp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        } else if (position == LEFT) {
+            mPointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        } else if (position == RIGHT) {
+            mPointRealContainerLp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        }
+    }
+
     private void initViewPager() {
-        //添加指示点
-        addPoints();
+        //当图片多于1张时添加指示点
+        if(!mIsOneImg) {
+            addPoints();
+        }
         //设置ViewPager
         FlyPageAdapter adapter = new FlyPageAdapter();
         mViewPager.setAdapter(adapter);
         mViewPager.addOnPageChangeListener(mOnPageChangeListener);
         //跳转到首页
         mViewPager.setCurrentItem(1, false);
-        //开始轮播
-        startAutoPlay();
+        //当图片多于1张时开始轮播
+        if (!mIsOneImg) {
+            startAutoPlay();
+        }
     }
 
 
+    /**
+     * 返回真实的位置
+     * @param position
+     * @return
+     */
     private int toRealPosition(int position) {
         int realPosition;
         if (mIsImageUrl) {
@@ -219,9 +285,14 @@ public class FlyBanner extends RelativeLayout {
 
         @Override
         public int getCount() {
+            //当只有一张图片时返回1
+            if (mIsOneImg) {
+                return 1;
+            }
+            //当为网络图片，返回网页图片长度
             if (mIsImageUrl)
                 return mImageUrls.size() + 2;
-
+            //当为本地图片，返回本地图片长度
             return mImages.size()+2;
         }
 
@@ -232,7 +303,6 @@ public class FlyBanner extends RelativeLayout {
 
         @Override
         public Object instantiateItem(ViewGroup container, final int position) {
-
             ImageView imageView = new ImageView(getContext());
             imageView.setOnClickListener(new OnClickListener() {
                 @Override
@@ -270,21 +340,14 @@ public class FlyBanner extends RelativeLayout {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LWC, LWC);
         lp.setMargins(10, 10, 10, 10);
         ImageView imageView;
-        if (mIsImageUrl) {
-            for (int i = 0; i < mImageUrls.size(); i++) {
-                imageView = new ImageView(getContext());
-                imageView.setLayoutParams(lp);
-                imageView.setImageResource(mPointDrawableResId);
-                mPointRealContainerLl.addView(imageView);
-            }
-        } else {
-            for (int i = 0; i < mImages.size(); i++) {
-                imageView = new ImageView(getContext());
-                imageView.setLayoutParams(lp);
-                imageView.setImageResource(mPointDrawableResId);
-                mPointRealContainerLl.addView(imageView);
-            }
+        int length = mIsImageUrl ? mImageUrls.size() : mImages.size();
+        for (int i = 0; i < length; i++) {
+            imageView = new ImageView(getContext());
+            imageView.setLayoutParams(lp);
+            imageView.setImageResource(mPointDrawableResId);
+            mPointRealContainerLl.addView(imageView);
         }
+
         switchToPoint(0);
     }
 
@@ -302,7 +365,7 @@ public class FlyBanner extends RelativeLayout {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (mAutoPlayAble) {
+        if (mAutoPlayAble && !mIsOneImg) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     stopAutoPlay();
@@ -337,16 +400,6 @@ public class FlyBanner extends RelativeLayout {
         }
     }
 
-    /**
-     * 定义指示点位置
-     */
-    public enum PointPosition {//中，右，左
-        CENTER,
-        RIGHT,
-        LEFT
-    }
-
-
     private OnItemClickListener mOnItemClickListener;
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -356,5 +409,4 @@ public class FlyBanner extends RelativeLayout {
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
-
 }
