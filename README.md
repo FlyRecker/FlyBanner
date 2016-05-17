@@ -7,7 +7,7 @@
 ###Gradle
 
 	dependencies {
-  		compile 'com.recker.flybanner:flybanner:1.2'      
+  		compile 'com.recker.flybanner:flybanner:1.3'      
 	}
 
 ###Usage
@@ -86,6 +86,9 @@ setPoinstPosition | position | 指示器位置(左，中， 右)
 
 
 ###更新说明：
+
+**1.3:**<br>
+1、修复内存溢出问题
 
 **1.2:**<br>
 1、修改一张图片时不轮播<br>

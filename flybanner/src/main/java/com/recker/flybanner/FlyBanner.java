@@ -328,6 +328,8 @@ public class FlyBanner extends RelativeLayout {
         @Override
         public void destroyItem(ViewGroup container, int position, Object object) {
             container.removeView((View)object);
+            if (object != null)
+                object = null;
         }
     }
 
